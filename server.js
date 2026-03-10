@@ -219,6 +219,7 @@ async function checkReminders() {
 
 // 每 10 秒运行一次检查，更灵敏
 setInterval(checkReminders, 10000);
+console.log(`[${new Date().toLocaleTimeString()}] 邮件提醒定时任务已启动，扫描间隔: 10秒`);
 // 启动时立即运行一次
 checkReminders();
 
