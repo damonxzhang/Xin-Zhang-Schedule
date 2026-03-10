@@ -2,12 +2,24 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 dotenv.config({ path: '.env.local' });
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// 邮件转运器配置
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: parseInt(process.env.EMAIL_PORT || '465'),
+  secure: process.env.EMAIL_SECURE === 'true',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -128,6 +140,75 @@ app.delete('/api/schedules/:id', async (req, res) => {
     res.status(500).json({ error: '删除日程失败' });
   }
 });
+
+// 邮件发送逻辑
+async function sendReminderEmail(schedule) {
+  const mailOptions = {
+    from: `"张鑫个人日历" <${process.env.EMAIL_USER}>`,
+    to: schedule.reminder_email,
+    subject: `日程提醒: ${schedule.title}`,
+    text: `您好！提醒您有一个日程即将开始：\n\n标题：${schedule.title}\n时间：${schedule.dateTime}\n备注：${schedule.notes || '无'}\n\n请准时参加！`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333;">
+        <h2 style="color: #7c3aed;">日程提醒</h2>
+        <p>您好！提醒您有一个日程即将开始：</p>
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p><strong>标题：</strong> ${schedule.title}</p>
+          <p><strong>时间：</strong> ${schedule.dateTime}</p>
+          <p><strong>备注：</strong> ${schedule.notes || '无'}</p>
+        </div>
+        <p style="color: #666; font-size: 12px;">此邮件由张鑫个人日历自动发送，请勿直接回复。</p>
+      </div>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`已向 ${schedule.reminder_email} 发送日程提醒: ${schedule.title}`);
+    return true;
+  } catch (err) {
+    console.error('发送邮件失败:', err);
+    return false;
+  }
+}
+
+// 定时任务：每分钟检查一次待发送的提醒
+async function checkReminders() {
+  try {
+    const [rows] = await pool.query(
+      `SELECT * FROM schedules 
+       WHERE reminder_enabled = TRUE 
+       AND reminder_sent = FALSE 
+       AND completed = FALSE`
+    );
+
+    const now = new Date();
+    
+    for (const schedule of rows) {
+      const scheduleTime = new Date(schedule.dateTime);
+      const leadTimeMs = (schedule.reminder_leadTimeMinutes || 0) * 60 * 1000;
+      const reminderTime = new Date(scheduleTime.getTime() - leadTimeMs);
+
+      // 如果当前时间已经到了或过了提醒时间，且距离日程开始时间还没超过1小时（避免补发太久的提醒）
+      if (now >= reminderTime && now < new Date(scheduleTime.getTime() + 60 * 60 * 1000)) {
+        const success = await sendReminderEmail(schedule);
+        if (success) {
+          await pool.query(
+            'UPDATE schedules SET reminder_sent = TRUE WHERE id = ?',
+            [schedule.id]
+          );
+        }
+      }
+    }
+  } catch (err) {
+    console.error('检查提醒任务出错:', err);
+  }
+}
+
+// 每 60 秒运行一次检查
+setInterval(checkReminders, 60000);
+// 启动时立即运行一次
+checkReminders();
 
 const PORT = 3001;
 app.listen(PORT, () => {
