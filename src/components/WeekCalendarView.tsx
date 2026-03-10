@@ -34,6 +34,7 @@ interface WeekCalendarViewProps {
   onDelete: (id: string) => void;
   onUpdateSchedule: (id: string, updates: Partial<Schedule>) => void;
   onEditSchedule: (schedule: Schedule) => void;
+  onAddAtTime: (date: Date) => void;
 }
 
 const HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
@@ -53,7 +54,7 @@ const getPosition = (dateTime: string, duration: number) => {
 };
 
 // 单元格组件（Droppable）
-function DayColumn({ day, index, children }: { day: Date, index: number, children: React.ReactNode }) {
+function DayColumn({ day, index, children, onAddAtTime }: { day: Date, index: number, children: React.ReactNode, onAddAtTime: (date: Date) => void }) {
   const { setNodeRef } = useDroppable({
     id: `column-${index}`,
     data: { day }
@@ -68,7 +69,13 @@ function DayColumn({ day, index, children }: { day: Date, index: number, childre
       {HOURS.map(hour => (
         <div 
           key={hour} 
-          className="border-b border-slate-50 w-full"
+          onClick={() => {
+            const clickDate = new Date(day);
+            clickDate.setHours(hour);
+            clickDate.setMinutes(0);
+            onAddAtTime(clickDate);
+          }}
+          className="border-b border-slate-50 w-full hover:bg-slate-50/50 cursor-pointer transition-colors"
           style={{ height: `${HOUR_HEIGHT}px` }}
         />
       ))}
@@ -162,7 +169,8 @@ export default function WeekCalendarView({
   onToggleComplete, 
   onDelete, 
   onUpdateSchedule, 
-  onEditSchedule 
+  onEditSchedule,
+  onAddAtTime
 }: WeekCalendarViewProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const today = new Date();
@@ -282,7 +290,7 @@ export default function WeekCalendarView({
             {/* Grid Columns */}
             <div className="flex-1 flex relative">
               {weekDays.map((day, i) => (
-                <DayColumn key={i} day={day} index={i}>
+                <DayColumn key={i} day={day} index={i} onAddAtTime={onAddAtTime}>
                   {schedules
                     .filter(s => isSameDay(parseISO(s.dateTime), day))
                     .map((schedule) => (

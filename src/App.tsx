@@ -173,6 +173,12 @@ export default function App() {
     setIsModalOpen(true);
   };
 
+  const handleAddAtTime = (date: Date) => {
+    setModalInitialDate(date);
+    setEditSchedule(null);
+    setIsModalOpen(true);
+  };
+
   const filteredSchedules = useMemo(() => {
     let filtered = schedules.filter(s => 
       s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -251,6 +257,7 @@ export default function App() {
             onDelete={handleDelete}
             onUpdateSchedule={handleUpdateSchedule}
             onEditSchedule={handleEditSchedule}
+            onAddAtTime={handleAddAtTime}
           />
         ) : activeTab === '日历' ? (
           <>
