@@ -162,7 +162,7 @@ export default function CalendarView({ schedules, onSelectDate, onDoubleClickDat
         {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
           <div key={cat} className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">{cat}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{cat}</span>
           </div>
         ))}
       </div>

@@ -21,6 +21,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(new Date());
   const [modalInitialDate, setModalInitialDate] = useState<Date | null>(null);
+  const [editSchedule, setEditSchedule] = useState<Schedule | null>(null);
 
   const API_URL = 'http://localhost:3001/api/schedules';
 
@@ -28,10 +29,14 @@ export default function App() {
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
+        console.log('Fetching schedules from:', API_URL);
         const response = await fetch(API_URL);
         if (response.ok) {
           const data = await response.json();
+          console.log('Schedules fetched successfully:', data.length, 'items');
           setSchedules(data);
+        } else {
+          console.error('Fetch failed with status:', response.status);
         }
       } catch (error) {
         console.error('获取日程失败:', error);
@@ -158,6 +163,13 @@ export default function App() {
 
   const handleCalendarDoubleClick = (date: Date) => {
     setModalInitialDate(date);
+    setEditSchedule(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditSchedule = (schedule: Schedule) => {
+    setEditSchedule(schedule);
+    setModalInitialDate(null);
     setIsModalOpen(true);
   };
 
@@ -238,6 +250,7 @@ export default function App() {
             onToggleComplete={handleToggleComplete}
             onDelete={handleDelete}
             onUpdateSchedule={handleUpdateSchedule}
+            onEditSchedule={handleEditSchedule}
           />
         ) : activeTab === '日历' ? (
           <>
@@ -278,6 +291,7 @@ export default function App() {
                           schedule={schedule}
                           onToggleComplete={handleToggleComplete}
                           onDelete={handleDelete}
+                          onEdit={handleEditSchedule}
                         />
                       </motion.div>
                     ))
@@ -306,6 +320,7 @@ export default function App() {
                       schedule={schedule}
                       onToggleComplete={handleToggleComplete}
                       onDelete={handleDelete}
+                      onEdit={handleEditSchedule}
                     />
                   </motion.div>
                 ))
@@ -349,9 +364,12 @@ export default function App() {
         onClose={() => {
           setIsModalOpen(false);
           setModalInitialDate(null);
+          setEditSchedule(null);
         }}
         onAdd={handleAddSchedule}
+        onUpdate={handleUpdateSchedule}
         initialDate={modalInitialDate}
+        editSchedule={editSchedule}
       />
 
       {/* Footer Decoration */}

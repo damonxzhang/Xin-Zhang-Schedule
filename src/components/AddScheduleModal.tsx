@@ -8,10 +8,19 @@ interface AddScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (schedule: Omit<Schedule, 'id' | 'createdAt' | 'completed'>) => void;
+  onUpdate?: (id: string, schedule: Partial<Schedule>) => void;
   initialDate?: Date | null;
+  editSchedule?: Schedule | null;
 }
 
-export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }: AddScheduleModalProps) {
+export default function AddScheduleModal({ 
+  isOpen, 
+  onClose, 
+  onAdd, 
+  onUpdate,
+  initialDate,
+  editSchedule 
+}: AddScheduleModalProps) {
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState('');
   const [duration, setDuration] = useState(60);
@@ -21,11 +30,27 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
   const [leadTime, setLeadTime] = useState(15);
   const [notes, setNotes] = useState('');
 
-  // Pre-fill date when modal opens with an initial date
+  // Pre-fill date when modal opens with an initial date or existing schedule
   useEffect(() => {
     if (isOpen) {
-      if (initialDate) {
-        // Format to YYYY-MM-DDThh:mm for datetime-local input
+      if (editSchedule) {
+        // Edit mode: fill with existing schedule data
+        setTitle(editSchedule.title);
+        const date = parseISO(editSchedule.dateTime);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        setDateTime(`${year}-${month}-${day}T${hours}:${minutes}`);
+        setDuration(editSchedule.durationMinutes);
+        setCategory(editSchedule.category);
+        setReminderEnabled(editSchedule.reminder.enabled);
+        setEmail(editSchedule.reminder.email || 'zhx703@163.com');
+        setLeadTime(editSchedule.reminder.leadTimeMinutes);
+        setNotes(editSchedule.notes || '');
+      } else if (initialDate) {
+        // Create mode with initial date
         const year = initialDate.getFullYear();
         const month = String(initialDate.getMonth() + 1).padStart(2, '0');
         const day = String(initialDate.getDate()).padStart(2, '0');
@@ -33,7 +58,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
         const minutes = String(initialDate.getMinutes()).padStart(2, '0');
         setDateTime(`${year}-${month}-${day}T${hours}:${minutes}`);
       } else {
-        // If opening without initial date, default to now
+        // Create mode default to now
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -53,13 +78,13 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
       setLeadTime(15);
       setNotes('');
     }
-  }, [isOpen, initialDate]);
+  }, [isOpen, initialDate, editSchedule]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !dateTime) return;
 
-    onAdd({
+    const scheduleData = {
       title,
       dateTime: new Date(dateTime).toISOString(),
       durationMinutes: duration,
@@ -70,7 +95,13 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
         leadTimeMinutes: leadTime,
       },
       notes,
-    });
+    };
+
+    if (editSchedule && onUpdate) {
+      onUpdate(editSchedule.id, scheduleData);
+    } else {
+      onAdd(scheduleData);
+    }
 
     onClose();
   };
@@ -95,7 +126,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
           >
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                新建日程
+                {editSchedule ? '编辑日程' : '新建日程'}
               </h2>
               <button 
                 onClick={onClose}
@@ -231,7 +262,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
                 type="submit"
                 className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-purple-200 hover:shadow-purple-300 transition-all active:scale-[0.98] mt-4"
               >
-                创建日程
+                {editSchedule ? '保存修改' : '创建日程'}
               </button>
             </form>
           </motion.div>

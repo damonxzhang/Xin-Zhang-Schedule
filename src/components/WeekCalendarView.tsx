@@ -33,6 +33,7 @@ interface WeekCalendarViewProps {
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
   onUpdateSchedule: (id: string, updates: Partial<Schedule>) => void;
+  onEditSchedule: (schedule: Schedule) => void;
 }
 
 const HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
@@ -77,15 +78,19 @@ function DayColumn({ day, index, children }: { day: Date, index: number, childre
 }
 
 // 日程卡片组件（Draggable）
+interface DraggableScheduleCardProps {
+  schedule: Schedule;
+  onToggleComplete: (id: string) => void;
+  onDoubleClick: (schedule: Schedule) => void;
+  isDraggingOverlay?: boolean;
+}
+
 function DraggableScheduleCard({ 
   schedule, 
   onToggleComplete, 
+  onDoubleClick,
   isDraggingOverlay = false 
-}: { 
-  schedule: Schedule, 
-  onToggleComplete: (id: string) => void,
-  isDraggingOverlay?: boolean
-}) {
+}: DraggableScheduleCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: schedule.id,
     data: { schedule }
@@ -113,6 +118,10 @@ function DraggableScheduleCard({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onDoubleClick(schedule);
+      }}
       className={cn(
         "absolute left-1 right-1 p-2 rounded-xl border flex flex-col justify-between overflow-hidden group transition-all hover:z-40 shadow-sm",
         isDraggingOverlay && "shadow-xl ring-2 ring-purple-500/50"
@@ -148,7 +157,13 @@ function DraggableScheduleCard({
   );
 }
 
-export default function WeekCalendarView({ schedules, onToggleComplete, onDelete, onUpdateSchedule }: WeekCalendarViewProps) {
+export default function WeekCalendarView({ 
+  schedules, 
+  onToggleComplete, 
+  onDelete, 
+  onUpdateSchedule, 
+  onEditSchedule 
+}: WeekCalendarViewProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Start from Monday
@@ -275,6 +290,7 @@ export default function WeekCalendarView({ schedules, onToggleComplete, onDelete
                         key={schedule.id} 
                         schedule={schedule} 
                         onToggleComplete={onToggleComplete}
+                        onDoubleClick={onEditSchedule}
                       />
                     ))}
                 </DayColumn>
@@ -300,6 +316,7 @@ export default function WeekCalendarView({ schedules, onToggleComplete, onDelete
           <DraggableScheduleCard 
             schedule={activeSchedule} 
             onToggleComplete={onToggleComplete} 
+            onDoubleClick={onEditSchedule}
             isDraggingOverlay 
           />
         ) : null}

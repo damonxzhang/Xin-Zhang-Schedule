@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Trash2, Bell, Clock, Tag, Calendar as CalendarIcon } from 'lucide-react';
+import { Check, Trash2, Bell, Clock, Tag, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
 import { Schedule, CATEGORY_COLORS } from '../types';
 import { format, isPast } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -9,9 +9,10 @@ interface ScheduleCardProps {
   schedule: Schedule;
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit?: (schedule: Schedule) => void;
 }
 
-export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: ScheduleCardProps) {
+export default function ScheduleCard({ schedule, onToggleComplete, onDelete, onEdit }: ScheduleCardProps) {
   const expired = isPast(new Date(schedule.dateTime)) && !schedule.completed;
 
   return (
@@ -21,8 +22,9 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: S
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 100 }}
       whileHover={{ y: -4, scale: 1.01 }}
+      onDoubleClick={() => onEdit?.(schedule)}
       className={cn(
-        "glass-card p-5 rounded-2xl group relative overflow-hidden transition-all duration-300",
+        "glass-card p-5 rounded-2xl group relative overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.99]",
         schedule.completed && "opacity-60 grayscale-[0.5]",
         expired && "border-red-500/50 bg-red-500/5"
       )}
