@@ -28,6 +28,7 @@ export const CATEGORY_COLORS: Record<Category, string> = {
 };
 
 export const LEAD_TIME_OPTIONS = [
+  { label: '准时提醒', value: 0 },
   { label: '5 分钟前', value: 5 },
   { label: '15 分钟前', value: 15 },
   { label: '30 分钟前', value: 30 },

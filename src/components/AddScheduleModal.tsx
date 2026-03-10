@@ -26,9 +26,9 @@ export default function AddScheduleModal({
   const [dateTime, setDateTime] = useState('');
   const [duration, setDuration] = useState(60);
   const [category, setCategory] = useState<Category>('工作');
-  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(true);
   const [email, setEmail] = useState('zhx703@163.com');
-  const [leadTime, setLeadTime] = useState(15);
+  const [leadTime, setLeadTime] = useState(0);
   const [notes, setNotes] = useState('');
 
   // Pre-fill date when modal opens with an initial date or existing schedule
@@ -74,9 +74,9 @@ export default function AddScheduleModal({
       setDateTime('');
       setDuration(60);
       setCategory('工作');
-      setReminderEnabled(false);
+      setReminderEnabled(true);
       setEmail('zhx703@163.com');
-      setLeadTime(15);
+      setLeadTime(0);
       setNotes('');
     }
   }, [isOpen, initialDate, editSchedule]);
