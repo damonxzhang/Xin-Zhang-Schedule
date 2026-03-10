@@ -110,6 +110,29 @@ export default function App() {
     }
   };
 
+  const handleUpdateSchedule = async (id: string, updates: Partial<Schedule>) => {
+    const schedule = schedules.find(s => s.id === id);
+    if (!schedule) return;
+
+    const updatedSchedule = { ...schedule, ...updates };
+    
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSchedule),
+      });
+      if (response.ok) {
+        setSchedules(prev => prev.map(s => s.id === id ? updatedSchedule : s));
+      } else {
+        const errorData = await response.json();
+        console.error('更新日程失败:', errorData.error);
+      }
+    } catch (error) {
+      console.error('更新日程失败:', error);
+    }
+  };
+
   const handleReminderSent = async (id: string) => {
     const schedule = schedules.find(s => s.id === id);
     if (!schedule) return;
@@ -214,6 +237,7 @@ export default function App() {
             schedules={schedules}
             onToggleComplete={handleToggleComplete}
             onDelete={handleDelete}
+            onUpdateSchedule={handleUpdateSchedule}
           />
         ) : activeTab === '日历' ? (
           <>
