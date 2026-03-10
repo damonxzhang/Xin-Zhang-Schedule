@@ -173,7 +173,7 @@ async function sendReminderEmail(schedule) {
   }
 }
 
-// 定时任务：每分钟检查一次待发送的提醒
+// 定时任务：每 10 秒检查一次待发送的提醒
 async function checkReminders() {
   try {
     const [rows] = await pool.query(
@@ -184,21 +184,32 @@ async function checkReminders() {
     );
 
     const now = new Date();
+    console.log(`[${now.toLocaleTimeString()}] 正在检查提醒任务... (待处理日程数: ${rows.length})`);
     
     for (const schedule of rows) {
       const scheduleTime = new Date(schedule.dateTime);
       const leadTimeMs = (schedule.reminder_leadTimeMinutes || 0) * 60 * 1000;
       const reminderTime = new Date(scheduleTime.getTime() - leadTimeMs);
 
+      console.log(`- 检查日程: "${schedule.title}"`);
+      console.log(`  设定时间: ${scheduleTime.toLocaleString()}`);
+      console.log(`  提前分钟: ${schedule.reminder_leadTimeMinutes}`);
+      console.log(`  提醒时间: ${reminderTime.toLocaleString()}`);
+      console.log(`  当前时间: ${now.toLocaleString()}`);
+
       // 如果当前时间已经到了或过了提醒时间，且距离日程开始时间还没超过1小时（避免补发太久的提醒）
       if (now >= reminderTime && now < new Date(scheduleTime.getTime() + 60 * 60 * 1000)) {
+        console.log(`  触发提醒！正在发送邮件至 ${schedule.reminder_email}...`);
         const success = await sendReminderEmail(schedule);
         if (success) {
           await pool.query(
             'UPDATE schedules SET reminder_sent = TRUE WHERE id = ?',
             [schedule.id]
           );
+          console.log(`  提醒已标记为已发送。`);
         }
+      } else {
+        console.log(`  未到提醒时间。`);
       }
     }
   } catch (err) {
@@ -206,8 +217,8 @@ async function checkReminders() {
   }
 }
 
-// 每 60 秒运行一次检查
-setInterval(checkReminders, 60000);
+// 每 10 秒运行一次检查，更灵敏
+setInterval(checkReminders, 10000);
 // 启动时立即运行一次
 checkReminders();
 
