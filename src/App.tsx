@@ -178,13 +178,13 @@ export default function App() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-6 py-2.5 rounded-xl text-sm font-bold transition-all relative whitespace-nowrap",
-                activeTab === tab ? "text-white" : "text-white/40 hover:text-white/60"
+                activeTab === tab ? "text-slate-900" : "text-slate-400 hover:text-slate-600"
               )}
             >
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-white/10 rounded-xl border border-white/10"
+                  className="absolute inset-0 bg-white shadow-sm rounded-xl border border-slate-200"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
               )}
@@ -195,7 +195,7 @@ export default function App() {
 
         <div className="flex items-center gap-4">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-cyan-400 transition-colors" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-purple-500 transition-colors" size={16} />
             <input 
               type="text"
               placeholder="搜索任务..."
@@ -230,13 +230,13 @@ export default function App() {
                 className="space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <CalendarIcon size={18} className="text-cyan-400" />
+                  <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                    <CalendarIcon size={18} className="text-purple-500" />
                     <span>{format(selectedCalendarDate, 'yyyy年MM月dd日', { locale: zhCN })}</span> 的任务
                   </h3>
                   <button 
                     onClick={() => setSelectedCalendarDate(null)}
-                    className="text-xs font-bold text-white/30 hover:text-white/60 transition-colors"
+                    className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     清除选择
                   </button>
@@ -258,7 +258,7 @@ export default function App() {
                       </motion.div>
                     ))
                   ) : (
-                    <div className="glass-card p-12 rounded-3xl text-center text-white/30 italic">
+                    <div className="glass-card p-12 rounded-3xl text-center text-slate-300 italic">
                       该日期暂无日程
                     </div>
                   )}
@@ -291,11 +291,13 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   className="glass-card p-20 rounded-3xl flex flex-col items-center justify-center text-center"
                 >
-                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                    <CalendarIcon className="text-white/20" size={40} />
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                    <CalendarIcon className="text-slate-300" size={40} />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">未找到日程</h3>
-                  <p className="text-white/40 max-w-xs">
+                  <h3 className="text-xl font-bold mb-2 text-slate-800">
+                    未找到日程
+                  </h3>
+                  <p className="text-slate-400 max-w-xs">
                     {searchQuery 
                       ? "找不到匹配搜索的任务。" 
                       : `您在${activeTab}没有安排任何任务。`}
@@ -312,9 +314,9 @@ export default function App() {
         whileHover={{ scale: 1.1, rotate: 90 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/40 z-40"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-purple-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/20 z-40"
       >
-        <Plus size={32} strokeWidth={3} />
+        <Plus size={32} strokeWidth={3} className="text-white" />
       </motion.button>
 
       {/* Modal */}
@@ -329,8 +331,8 @@ export default function App() {
       />
 
       {/* Footer Decoration */}
-      <div className="fixed -bottom-24 -left-24 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full -z-10" />
-      <div className="fixed -top-24 -right-24 w-96 h-96 bg-cyan-600/10 blur-[120px] rounded-full -z-10" />
+      <div className="fixed -bottom-24 -left-24 w-96 h-96 bg-purple-100/50 blur-[120px] rounded-full -z-10" />
+      <div className="fixed -top-24 -right-24 w-96 h-96 bg-indigo-100/50 blur-[120px] rounded-full -z-10" />
     </div>
   );
 }

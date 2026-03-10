@@ -40,41 +40,41 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: S
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: CATEGORY_COLORS[schedule.category] }}
             />
-            <span className="text-xs font-medium text-white/40 uppercase tracking-wider">
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
               {schedule.category}
             </span>
           </div>
           
           <h3 className={cn(
-            "text-lg font-bold text-white mb-2 truncate transition-all",
-            schedule.completed && "line-through text-white/30"
+            "text-lg font-bold text-slate-800 mb-2 truncate transition-all",
+            schedule.completed && "line-through text-slate-300"
           )}>
             {schedule.title}
           </h3>
 
           <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-1.5 text-white/40 text-xs bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5">
-              <CalendarIcon size={12} className="text-purple-400" />
+            <div className="flex items-center gap-1.5 text-slate-500 text-xs bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
+              <CalendarIcon size={12} className="text-purple-500" />
               <span>{format(new Date(schedule.dateTime), 'MM月dd日 HH:mm', { locale: zhCN })}</span>
             </div>
             
             {schedule.notes && (
-              <div className="flex items-center gap-1.5 text-white/40 text-xs bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5">
-                <Clock size={12} className="text-cyan-400" />
+              <div className="flex items-center gap-1.5 text-slate-500 text-xs bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
+                <Clock size={12} className="text-indigo-500" />
                 <span className="truncate max-w-[150px]">{schedule.notes}</span>
               </div>
             )}
 
             {schedule.reminder.enabled && (
-              <div className="flex items-center gap-1.5 text-green-400/60 text-xs bg-green-500/5 px-2.5 py-1.5 rounded-lg border border-green-500/10">
+              <div className="flex items-center gap-1.5 text-green-600 text-xs bg-green-50 px-2.5 py-1.5 rounded-lg border border-green-100">
                 <Bell size={12} />
                 <span>已设提醒</span>
               </div>
             )}
 
             {expired && !schedule.completed && (
-              <div className="flex items-center gap-1.5 text-red-400 text-xs bg-red-500/10 px-2.5 py-1.5 rounded-lg border border-red-500/20">
-                <Clock size={12} />
+              <div className="flex items-center gap-1.5 text-red-500 text-xs bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100">
+                <AlertCircle size={12} />
                 <span>已逾期</span>
               </div>
             )}
@@ -91,8 +91,8 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: S
             className={cn(
               "p-3 rounded-xl transition-all active:scale-90 cursor-pointer relative z-30",
               schedule.completed 
-                ? "bg-green-500/20 text-green-400" 
-                : "bg-white/5 hover:bg-white/10 text-white/60 hover:text-white"
+                ? "bg-green-100 text-green-600" 
+                : "bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600"
             )}
           >
             <Check size={20} strokeWidth={3} className="pointer-events-none" />
@@ -103,7 +103,7 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: S
               onDelete(schedule.id);
             }}
             title="删除日程"
-            className="p-3 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-400 transition-all active:scale-90 cursor-pointer relative z-30"
+            className="p-3 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all active:scale-90 cursor-pointer relative z-30"
           >
             <Trash2 size={20} strokeWidth={2.5} className="pointer-events-none" />
           </button>
