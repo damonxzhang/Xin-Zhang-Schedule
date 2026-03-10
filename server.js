@@ -31,6 +31,7 @@ async function initDb() {
         id VARCHAR(36) PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         dateTime VARCHAR(50) NOT NULL,
+        durationMinutes INT DEFAULT 60,
         category VARCHAR(50) NOT NULL,
         notes TEXT,
         completed BOOLEAN DEFAULT FALSE,
@@ -39,8 +40,17 @@ async function initDb() {
         reminder_email VARCHAR(255),
         reminder_leadTimeMinutes INT,
         reminder_sent BOOLEAN DEFAULT FALSE
-      )
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+    // 检查列是否存在，如果不存在则添加
+    const [columns] = await connection.query('SHOW COLUMNS FROM schedules LIKE "durationMinutes"');
+    if (columns.length === 0) {
+      await connection.query('ALTER TABLE schedules ADD COLUMN durationMinutes INT DEFAULT 60 AFTER dateTime');
+    }
+    
+    // 强制修改现有表的字符集，以防表已存在但字符集不对
+    await connection.query(`ALTER TABLE schedules CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
     
     connection.release();
     console.log('数据库已初始化');
@@ -81,9 +91,9 @@ app.post('/api/schedules', async (req, res) => {
   const s = req.body;
   try {
     await pool.query(
-      `INSERT INTO schedules (id, title, dateTime, category, notes, completed, createdAt, reminder_enabled, reminder_email, reminder_leadTimeMinutes, reminder_sent) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [s.id, s.title, s.dateTime, s.category, s.notes, s.completed, s.createdAt, s.reminder.enabled, s.reminder.email, s.reminder.leadTimeMinutes, s.reminder.sent]
+      `INSERT INTO schedules (id, title, dateTime, durationMinutes, category, notes, completed, createdAt, reminder_enabled, reminder_email, reminder_leadTimeMinutes, reminder_sent) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [s.id, s.title, s.dateTime, s.durationMinutes || 60, s.category, s.notes, s.completed, s.createdAt, s.reminder.enabled, s.reminder.email, s.reminder.leadTimeMinutes, s.reminder.sent || false]
     );
     res.status(201).json(s);
   } catch (err) {
@@ -97,9 +107,9 @@ app.put('/api/schedules/:id', async (req, res) => {
   const s = req.body;
   try {
     await pool.query(
-      `UPDATE schedules SET title=?, dateTime=?, category=?, notes=?, completed=?, reminder_enabled=?, reminder_email=?, reminder_leadTimeMinutes=?, reminder_sent=? 
+      `UPDATE schedules SET title=?, dateTime=?, durationMinutes=?, category=?, notes=?, completed=?, reminder_enabled=?, reminder_email=?, reminder_leadTimeMinutes=?, reminder_sent=? 
        WHERE id=?`,
-      [s.title, s.dateTime, s.category, s.notes, s.completed, s.reminder.enabled, s.reminder.email, s.reminder.leadTimeMinutes, s.reminder.sent, id]
+      [s.title, s.dateTime, s.durationMinutes || 60, s.category, s.notes, s.completed, s.reminder.enabled, s.reminder.email, s.reminder.leadTimeMinutes, s.reminder.sent, id]
     );
     res.json(s);
   } catch (err) {

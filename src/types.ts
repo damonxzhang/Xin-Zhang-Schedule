@@ -11,6 +11,7 @@ export interface Schedule {
   id: string;
   title: string;
   dateTime: string; // ISO string
+  durationMinutes: number; // 持续时间（分钟）
   category: Category;
   reminder: ReminderConfig;
   notes?: string;

@@ -14,6 +14,7 @@ interface AddScheduleModalProps {
 export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }: AddScheduleModalProps) {
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState('');
+  const [duration, setDuration] = useState(60);
   const [category, setCategory] = useState<Category>('工作');
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [email, setEmail] = useState('zhx703@163.com');
@@ -45,6 +46,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
       // Reset form when modal closes
       setTitle('');
       setDateTime('');
+      setDuration(60);
       setCategory('工作');
       setReminderEnabled(false);
       setEmail('zhx703@163.com');
@@ -60,6 +62,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
     onAdd({
       title,
       dateTime: new Date(dateTime).toISOString(),
+      durationMinutes: duration,
       category,
       reminder: {
         enabled: reminderEnabled,
@@ -122,6 +125,20 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
                     type="datetime-local"
                     value={dateTime}
                     onChange={(e) => setDateTime(e.target.value)}
+                    className="glass-input w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
+                    <Clock size={14} /> 持续时长 (分钟)
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={duration}
+                    onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
                     className="glass-input w-full"
                   />
                 </div>

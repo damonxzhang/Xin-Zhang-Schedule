@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Calendar as CalendarIcon, Search } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Search, Bell } from 'lucide-react';
 import { Schedule } from './types';
 import ScheduleCard from './components/ScheduleCard';
 import AddScheduleModal from './components/AddScheduleModal';
 import ReminderManager from './components/ReminderManager';
 import CalendarView from './components/CalendarView';
+import WeekCalendarView from './components/WeekCalendarView';
 import { isToday, isThisWeek, parseISO, compareAsc, isSameDay, format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { cn } from './lib/utils';
@@ -55,9 +56,14 @@ export default function App() {
       });
       if (response.ok) {
         setSchedules(prev => [...prev, newSchedule]);
+      } else {
+        const errorData = await response.json();
+        console.error('添加日程失败:', errorData.error);
+        alert(`添加失败: ${errorData.error}`);
       }
     } catch (error) {
       console.error('添加日程失败:', error);
+      alert('添加失败，请检查后端服务器是否正常运行');
     }
   };
 
@@ -75,9 +81,14 @@ export default function App() {
       });
       if (response.ok) {
         setSchedules(prev => prev.map(s => s.id === id ? updatedSchedule : s));
+      } else {
+        const errorData = await response.json();
+        console.error('更新状态失败:', errorData.error);
+        alert(`操作失败: ${errorData.error}`);
       }
     } catch (error) {
       console.error('更新完成状态失败:', error);
+      alert('操作失败，请检查后端服务器连接');
     }
   };
 
@@ -88,9 +99,14 @@ export default function App() {
       });
       if (response.ok) {
         setSchedules(prev => prev.filter(s => s.id !== id));
+      } else {
+        const errorData = await response.json().catch(() => ({ error: '删除请求返回异常' }));
+        console.error('删除日程失败:', errorData.error);
+        alert(`删除失败: ${errorData.error}`);
       }
     } catch (error) {
       console.error('删除日程失败:', error);
+      alert('删除失败，请检查后端服务器连接');
     }
   };
 
@@ -131,7 +147,7 @@ export default function App() {
     if (activeTab === '今天') {
       filtered = filtered.filter(s => isToday(parseISO(s.dateTime)));
     } else if (activeTab === '本周') {
-      filtered = filtered.filter(s => isThisWeek(parseISO(s.dateTime)));
+      filtered = filtered.filter(s => isThisWeek(parseISO(s.dateTime), { weekStartsOn: 1 }));
     } else if (activeTab === '日历' && selectedCalendarDate) {
       filtered = filtered.filter(s => isSameDay(parseISO(s.dateTime), selectedCalendarDate));
     }
@@ -191,78 +207,104 @@ export default function App() {
         </div>
       </header>
 
-      {/* Calendar View */}
-      {activeTab === '日历' && (
-        <CalendarView 
-          schedules={schedules} 
-          selectedDate={selectedCalendarDate}
-          onSelectDate={setSelectedCalendarDate}
-          onDoubleClickDate={handleCalendarDoubleClick}
-        />
-      )}
-
-      {/* List Header */}
-      {activeTab === '日历' && selectedCalendarDate && (
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 glass-card rounded-xl text-cyan-400">
-              <CalendarIcon size={18} />
-            </div>
-            <h3 className="text-xl font-bold">
-              <span className="text-cyan-400">{format(selectedCalendarDate, 'yyyy年MM月dd日', { locale: zhCN })}</span> 的任务
-            </h3>
-          </div>
-          <button 
-            onClick={() => setSelectedCalendarDate(null)}
-            className="text-xs font-bold text-white/30 hover:text-white/60 transition-colors"
-          >
-            清除选择
-          </button>
-        </motion.div>
-      )}
-
-      {/* List */}
-      <div className="grid grid-cols-1 gap-4">
-        <AnimatePresence mode="popLayout">
-          {filteredSchedules.length > 0 ? (
-            filteredSchedules.map((schedule, index) => (
-              <motion.div
-                key={schedule.id}
+      {/* Main Content */}
+      <div className="space-y-6">
+        {activeTab === '本周' ? (
+          <WeekCalendarView 
+            schedules={schedules}
+            onToggleComplete={handleToggleComplete}
+            onDelete={handleDelete}
+          />
+        ) : activeTab === '日历' ? (
+          <>
+            <CalendarView 
+              schedules={schedules} 
+              onSelectDate={setSelectedCalendarDate}
+              onDoubleClickDate={handleCalendarDoubleClick}
+              selectedDate={selectedCalendarDate}
+            />
+            {selectedCalendarDate && (
+              <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                className="space-y-4"
               >
-                <ScheduleCard 
-                  schedule={schedule}
-                  onToggleComplete={handleToggleComplete}
-                  onDelete={handleDelete}
-                />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <CalendarIcon size={18} className="text-cyan-400" />
+                    <span>{format(selectedCalendarDate, 'yyyy年MM月dd日', { locale: zhCN })}</span> 的任务
+                  </h3>
+                  <button 
+                    onClick={() => setSelectedCalendarDate(null)}
+                    className="text-xs font-bold text-white/30 hover:text-white/60 transition-colors"
+                  >
+                    清除选择
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {filteredSchedules.length > 0 ? (
+                    filteredSchedules.map((schedule, index) => (
+                      <motion.div
+                        key={schedule.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <ScheduleCard 
+                          schedule={schedule}
+                          onToggleComplete={handleToggleComplete}
+                          onDelete={handleDelete}
+                        />
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="glass-card p-12 rounded-3xl text-center text-white/30 italic">
+                      该日期暂无日程
+                    </div>
+                  )}
+                </div>
               </motion.div>
-            ))
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="glass-card p-20 rounded-3xl flex flex-col items-center justify-center text-center"
-            >
-              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                <CalendarIcon className="text-white/20" size={40} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">未找到日程</h3>
-              <p className="text-white/40 max-w-xs">
-                {searchQuery 
-                  ? "找不到匹配搜索的任务。" 
-                  : activeTab === '日历' && selectedCalendarDate
-                    ? `您在 ${format(selectedCalendarDate, 'MM月dd日', { locale: zhCN })} 没有安排任何任务。`
-                    : `您在${activeTab}没有安排任何任务。`}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </>
+        ) : (
+          /* Default List View for '今天' and '所有' */
+          <div className="grid grid-cols-1 gap-4">
+            <AnimatePresence mode="popLayout">
+              {filteredSchedules.length > 0 ? (
+                filteredSchedules.map((schedule, index) => (
+                  <motion.div
+                    key={schedule.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <ScheduleCard 
+                      schedule={schedule}
+                      onToggleComplete={handleToggleComplete}
+                      onDelete={handleDelete}
+                    />
+                  </motion.div>
+                ))
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="glass-card p-20 rounded-3xl flex flex-col items-center justify-center text-center"
+                >
+                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                    <CalendarIcon className="text-white/20" size={40} />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">未找到日程</h3>
+                  <p className="text-white/40 max-w-xs">
+                    {searchQuery 
+                      ? "找不到匹配搜索的任务。" 
+                      : `您在${activeTab}没有安排任何任务。`}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
 
       {/* FAB */}
