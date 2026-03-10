@@ -1,9 +1,12 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Trash2, Bell, Clock, Tag, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
+import { Check, Trash2, Bell, Clock, Tag, Calendar as CalendarIcon, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Schedule, CATEGORY_COLORS } from '../types';
 import { format, isPast } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { cn } from '../lib/utils';
+import { useState } from 'react';
 
 interface ScheduleCardProps {
   schedule: Schedule;
@@ -13,6 +16,7 @@ interface ScheduleCardProps {
 }
 
 export default function ScheduleCard({ schedule, onToggleComplete, onDelete, onEdit }: ScheduleCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const expired = isPast(new Date(schedule.dateTime)) && !schedule.completed;
 
   return (
@@ -54,19 +58,12 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete, onE
             {schedule.title}
           </h3>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 mb-3">
             <div className="flex items-center gap-1.5 text-slate-500 text-xs bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
               <CalendarIcon size={12} className="text-purple-500" />
               <span>{format(new Date(schedule.dateTime), 'MM月dd日 HH:mm', { locale: zhCN })}</span>
             </div>
             
-            {schedule.notes && (
-              <div className="flex items-center gap-1.5 text-slate-500 text-xs bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200">
-                <Clock size={12} className="text-indigo-500" />
-                <span className="truncate max-w-[150px]">{schedule.notes}</span>
-              </div>
-            )}
-
             {schedule.reminder.enabled && (
               <div className="flex items-center gap-1.5 text-green-600 text-xs bg-green-50 px-2.5 py-1.5 rounded-lg border border-green-100">
                 <Bell size={12} />
@@ -81,6 +78,36 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete, onE
               </div>
             )}
           </div>
+
+          {schedule.notes && (
+            <div className="space-y-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="flex items-center gap-1 text-[10px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors uppercase tracking-wider"
+              >
+                {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                {isExpanded ? '收起详情' : '查看详情'}
+              </button>
+              
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-2 p-3 bg-slate-50/80 rounded-xl border border-slate-100 prose prose-sm prose-slate max-w-none text-xs leading-relaxed">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{schedule.notes}</ReactMarkdown>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 relative z-20">

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Plus, Bell, Tag, Clock, Mail, AlignLeft, Type, Calendar } from 'lucide-react';
+import { X, Plus, Bell, Tag, Clock, Mail, AlignLeft, Type, Calendar, FileText } from 'lucide-react';
 import { parseISO } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Category, CATEGORY_COLORS, LEAD_TIME_OPTIONS, Schedule } from '../types';
 import { cn } from '../lib/utils';
 
@@ -30,6 +32,7 @@ export default function AddScheduleModal({
   const [email, setEmail] = useState('zhx703@163.com');
   const [leadTime, setLeadTime] = useState(0);
   const [notes, setNotes] = useState('');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   // Pre-fill date when modal opens with an initial date or existing schedule
   useEffect(() => {
@@ -78,6 +81,7 @@ export default function AddScheduleModal({
       setEmail('zhx703@163.com');
       setLeadTime(0);
       setNotes('');
+      setIsPreviewMode(false);
     }
   }, [isOpen, initialDate, editSchedule]);
 
@@ -137,7 +141,7 @@ export default function AddScheduleModal({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
                   <Type size={14} className="text-purple-500" />
@@ -204,6 +208,41 @@ export default function AddScheduleModal({
                       {cat}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                    <FileText size={14} className="text-purple-500" />
+                    日程详情 (支持 Markdown)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewMode(!isPreviewMode)}
+                    className="text-[10px] px-2 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-purple-100 hover:text-purple-600 transition-colors font-bold uppercase tracking-tighter"
+                  >
+                    {isPreviewMode ? '编辑' : '预览'}
+                  </button>
+                </div>
+                
+                <div className="relative min-h-[120px]">
+                  {isPreviewMode ? (
+                    <div className="glass-input w-full min-h-[120px] prose prose-sm prose-slate max-w-none overflow-y-auto bg-slate-50/50">
+                      {notes ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{notes}</ReactMarkdown>
+                      ) : (
+                        <span className="text-slate-400 italic">暂无内容</span>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea
+                      placeholder="添加一些详细说明... (支持 Markdown)"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="glass-input w-full min-h-[120px] py-3 resize-none"
+                    />
+                  )}
                 </div>
               </div>
 
