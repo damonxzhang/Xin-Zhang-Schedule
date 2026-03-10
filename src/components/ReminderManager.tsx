@@ -27,7 +27,7 @@ export default function ReminderManager({ schedules, onReminderSent }: ReminderM
       // In a real app, you'd call emailjs.send()
       // For this demo, we'll simulate the call if the key is placeholder
       if (EMAILJS_PUBLIC_KEY === 'user_placeholder_key') {
-        console.warn('EmailJS Public Key is placeholder. Simulating email send.');
+        console.warn('EmailJS 公钥为占位符。正在模拟发送邮件。');
       } else {
         await emailjs.send(
           EMAILJS_SERVICE_ID,
@@ -35,8 +35,8 @@ export default function ReminderManager({ schedules, onReminderSent }: ReminderM
           {
             to_email: schedule.reminder.email,
             title: schedule.title,
-            time: new Date(schedule.dateTime).toLocaleString(),
-            notes: schedule.notes || 'No notes provided.',
+            time: new Date(schedule.dateTime).toLocaleString('zh-CN'),
+            notes: schedule.notes || '无备注',
             category: schedule.category,
           },
           EMAILJS_PUBLIC_KEY

@@ -14,9 +14,9 @@ interface AddScheduleModalProps {
 export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }: AddScheduleModalProps) {
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState('');
-  const [category, setCategory] = useState<Category>('Work');
+  const [category, setCategory] = useState<Category>('工作');
   const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('zhx703@163.com');
   const [leadTime, setLeadTime] = useState(15);
   const [notes, setNotes] = useState('');
 
@@ -45,9 +45,9 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
       // Reset form when modal closes
       setTitle('');
       setDateTime('');
-      setCategory('Work');
+      setCategory('工作');
       setReminderEnabled(false);
-      setEmail('');
+      setEmail('zhx703@163.com');
       setLeadTime(15);
       setNotes('');
     }
@@ -91,7 +91,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
             className="glass-card w-full max-w-lg rounded-3xl overflow-hidden relative z-10"
           >
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold">New Schedule</h2>
+              <h2 className="text-2xl font-display font-bold">新建日程</h2>
               <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X size={20} />
               </button>
@@ -100,12 +100,12 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
             <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-                  <Plus size={14} /> Title
+                  <Plus size={14} /> 标题
                 </label>
                 <input
                   required
                   type="text"
-                  placeholder="What needs to be done?"
+                  placeholder="需要做什么？"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="glass-input w-full text-lg"
@@ -115,7 +115,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-                    <Clock size={14} /> Date & Time
+                    <Clock size={14} /> 日期和时间
                   </label>
                   <input
                     required
@@ -128,7 +128,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-                    <Tag size={14} /> Category
+                    <Tag size={14} /> 分类
                   </label>
                   <select
                     value={category}
@@ -147,7 +147,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
               <div className="space-y-4 pt-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-                    <Bell size={14} /> Email Reminder
+                    <Bell size={14} /> 邮件提醒
                   </label>
                   <button
                     type="button"
@@ -174,7 +174,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
                     >
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 flex items-center gap-2">
-                          <Mail size={12} /> Reminder Email
+                          <Mail size={12} /> 提醒邮箱
                         </label>
                         <input
                           required={reminderEnabled}
@@ -187,7 +187,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-white/30 flex items-center gap-2">
-                          <Clock size={12} /> Lead Time
+                          <Clock size={12} /> 提前时间
                         </label>
                         <div className="flex flex-wrap gap-2">
                           {LEAD_TIME_OPTIONS.map((opt) => (
@@ -214,10 +214,10 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
-                  <AlignLeft size={14} /> Notes
+                  <AlignLeft size={14} /> 备注
                 </label>
                 <textarea
-                  placeholder="Add some details..."
+                  placeholder="添加一些细节..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="glass-input w-full min-h-[100px] resize-none"
@@ -228,7 +228,7 @@ export default function AddScheduleModal({ isOpen, onClose, onAdd, initialDate }
                 type="submit"
                 className="w-full py-4 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-2xl font-bold text-lg shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all active:scale-[0.98]"
               >
-                Create Schedule
+                创建日程
               </button>
             </form>
           </motion.div>

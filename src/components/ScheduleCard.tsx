@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Check, Trash2, Bell, Clock, Tag, Calendar as CalendarIcon } from 'lucide-react';
 import { Schedule, CATEGORY_COLORS } from '../types';
 import { format, isPast } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { cn } from '../lib/utils';
 
 interface ScheduleCardProps {
@@ -54,12 +55,12 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: S
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/60">
             <div className="flex items-center gap-1.5">
               <Clock size={14} className="text-cyan-400" />
-              <span>{format(new Date(schedule.dateTime), 'MMM d, h:mm a')}</span>
+              <span>{format(new Date(schedule.dateTime), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}</span>
             </div>
             {schedule.reminder.enabled && (
               <div className="flex items-center gap-1.5">
                 <Bell size={14} className="text-purple-400" />
-                <span className="text-xs">Reminder Active</span>
+                <span className="text-xs">提醒已激活</span>
               </div>
             )}
           </div>
@@ -95,7 +96,7 @@ export default function ScheduleCard({ schedule, onToggleComplete, onDelete }: S
       {expired && (
         <div className="mt-3 pt-3 border-t border-white/5">
           <span className="text-[10px] font-bold text-red-400 uppercase tracking-tighter">
-            Overdue Task
+            已过期任务
           </span>
         </div>
       )}

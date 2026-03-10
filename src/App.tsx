@@ -7,51 +7,114 @@ import AddScheduleModal from './components/AddScheduleModal';
 import ReminderManager from './components/ReminderManager';
 import CalendarView from './components/CalendarView';
 import { isToday, isThisWeek, parseISO, compareAsc, isSameDay, format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { cn } from './lib/utils';
 
-type Tab = 'Today' | 'This Week' | 'Calendar' | 'All';
+type Tab = '今天' | '本周' | '日历' | '所有';
 
 export default function App() {
-  const [schedules, setSchedules] = useState<Schedule[]>(() => {
-    const saved = localStorage.getItem('lumina_schedules');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   
-  const [activeTab, setActiveTab] = useState<Tab>('Calendar');
+  const [activeTab, setActiveTab] = useState<Tab>('日历');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(new Date());
   const [modalInitialDate, setModalInitialDate] = useState<Date | null>(null);
 
-  // Persist to localStorage
-  useEffect(() => {
-    localStorage.setItem('lumina_schedules', JSON.stringify(schedules));
-  }, [schedules]);
+  const API_URL = 'http://localhost:3001/api/schedules';
 
-  const handleAddSchedule = (data: Omit<Schedule, 'id' | 'createdAt' | 'completed'>) => {
+  // Fetch from DB
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (response.ok) {
+          const data = await response.json();
+          setSchedules(data);
+        }
+      } catch (error) {
+        console.error('获取日程失败:', error);
+      }
+    };
+    fetchSchedules();
+  }, []);
+
+  const handleAddSchedule = async (data: Omit<Schedule, 'id' | 'createdAt' | 'completed'>) => {
     const newSchedule: Schedule = {
       ...data,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       completed: false,
     };
-    setSchedules(prev => [...prev, newSchedule]);
+    
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSchedule),
+      });
+      if (response.ok) {
+        setSchedules(prev => [...prev, newSchedule]);
+      }
+    } catch (error) {
+      console.error('添加日程失败:', error);
+    }
   };
 
-  const handleToggleComplete = (id: string) => {
-    setSchedules(prev => prev.map(s => 
-      s.id === id ? { ...s, completed: !s.completed } : s
-    ));
+  const handleToggleComplete = async (id: string) => {
+    const schedule = schedules.find(s => s.id === id);
+    if (!schedule) return;
+
+    const updatedSchedule = { ...schedule, completed: !schedule.completed };
+    
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSchedule),
+      });
+      if (response.ok) {
+        setSchedules(prev => prev.map(s => s.id === id ? updatedSchedule : s));
+      }
+    } catch (error) {
+      console.error('更新完成状态失败:', error);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setSchedules(prev => prev.filter(s => s.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setSchedules(prev => prev.filter(s => s.id !== id));
+      }
+    } catch (error) {
+      console.error('删除日程失败:', error);
+    }
   };
 
-  const handleReminderSent = (id: string) => {
-    setSchedules(prev => prev.map(s => 
-      s.id === id ? { ...s, reminder: { ...s.reminder, sent: true } } : s
-    ));
+  const handleReminderSent = async (id: string) => {
+    const schedule = schedules.find(s => s.id === id);
+    if (!schedule) return;
+
+    const updatedSchedule = { 
+      ...schedule, 
+      reminder: { ...schedule.reminder, sent: true } 
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSchedule),
+      });
+      if (response.ok) {
+        setSchedules(prev => prev.map(s => s.id === id ? updatedSchedule : s));
+      }
+    } catch (error) {
+      console.error('更新提醒状态失败:', error);
+    }
   };
 
   const handleCalendarDoubleClick = (date: Date) => {
@@ -65,11 +128,11 @@ export default function App() {
       s.notes?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    if (activeTab === 'Today') {
+    if (activeTab === '今天') {
       filtered = filtered.filter(s => isToday(parseISO(s.dateTime)));
-    } else if (activeTab === 'This Week') {
+    } else if (activeTab === '本周') {
       filtered = filtered.filter(s => isThisWeek(parseISO(s.dateTime)));
-    } else if (activeTab === 'Calendar' && selectedCalendarDate) {
+    } else if (activeTab === '日历' && selectedCalendarDate) {
       filtered = filtered.filter(s => isSameDay(parseISO(s.dateTime), selectedCalendarDate));
     }
 
@@ -90,13 +153,36 @@ export default function App() {
       <ReminderManager schedules={schedules} onReminderSent={handleReminderSent} />
       
       {/* Header */}
-      <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-end gap-6">
+      <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 p-1.5 glass-card rounded-2xl w-fit overflow-x-auto no-scrollbar">
+          {(['今天', '本周', '日历', '所有'] as Tab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-sm font-bold transition-all relative whitespace-nowrap",
+                activeTab === tab ? "text-white" : "text-white/40 hover:text-white/60"
+              )}
+            >
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-white/10 rounded-xl border border-white/10"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <span className="relative z-10">{tab}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-4">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-cyan-400 transition-colors" size={16} />
             <input 
               type="text"
-              placeholder="Search tasks..."
+              placeholder="搜索任务..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="glass-input pl-10 w-full sm:w-64 text-sm py-2.5"
@@ -105,31 +191,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 mb-6 p-1.5 glass-card rounded-2xl w-fit overflow-x-auto no-scrollbar">
-        {(['Today', 'This Week', 'Calendar', 'All'] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "px-6 py-2.5 rounded-xl text-sm font-bold transition-all relative whitespace-nowrap",
-              activeTab === tab ? "text-white" : "text-white/40 hover:text-white/60"
-            )}
-          >
-            {activeTab === tab && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 bg-white/10 rounded-xl border border-white/10"
-                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-              />
-            )}
-            <span className="relative z-10">{tab}</span>
-          </button>
-        ))}
-      </div>
-
       {/* Calendar View */}
-      {activeTab === 'Calendar' && (
+      {activeTab === '日历' && (
         <CalendarView 
           schedules={schedules} 
           selectedDate={selectedCalendarDate}
@@ -139,7 +202,7 @@ export default function App() {
       )}
 
       {/* List Header */}
-      {activeTab === 'Calendar' && selectedCalendarDate && (
+      {activeTab === '日历' && selectedCalendarDate && (
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -150,14 +213,14 @@ export default function App() {
               <CalendarIcon size={18} />
             </div>
             <h3 className="text-xl font-bold">
-              Tasks for <span className="text-cyan-400">{format(selectedCalendarDate, 'MMMM d, yyyy')}</span>
+              <span className="text-cyan-400">{format(selectedCalendarDate, 'yyyy年MM月dd日', { locale: zhCN })}</span> 的任务
             </h3>
           </div>
           <button 
             onClick={() => setSelectedCalendarDate(null)}
             className="text-xs font-bold text-white/30 hover:text-white/60 transition-colors"
           >
-            Clear Selection
+            清除选择
           </button>
         </motion.div>
       )}
@@ -189,13 +252,13 @@ export default function App() {
               <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
                 <CalendarIcon className="text-white/20" size={40} />
               </div>
-              <h3 className="text-xl font-bold mb-2">No schedules found</h3>
+              <h3 className="text-xl font-bold mb-2">未找到日程</h3>
               <p className="text-white/40 max-w-xs">
                 {searchQuery 
-                  ? "We couldn't find any tasks matching your search." 
-                  : activeTab === 'Calendar' && selectedCalendarDate
-                    ? `You don't have any tasks scheduled for ${format(selectedCalendarDate, 'MMMM d')}.`
-                    : `You don't have any tasks scheduled for ${activeTab.toLowerCase()}.`}
+                  ? "找不到匹配搜索的任务。" 
+                  : activeTab === '日历' && selectedCalendarDate
+                    ? `您在 ${format(selectedCalendarDate, 'MM月dd日', { locale: zhCN })} 没有安排任何任务。`
+                    : `您在${activeTab}没有安排任何任务。`}
               </p>
             </motion.div>
           )}

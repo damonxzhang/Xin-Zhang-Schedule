@@ -1,4 +1,4 @@
-export type Category = 'Work' | 'Life' | 'Health' | 'Study' | 'Other';
+export type Category = '工作' | '生活' | '健康' | '学习' | '其他';
 
 export interface ReminderConfig {
   enabled: boolean;
@@ -19,17 +19,17 @@ export interface Schedule {
 }
 
 export const CATEGORY_COLORS: Record<Category, string> = {
-  Work: '#a78bfa', // Purple
-  Life: '#67e8f9', // Cyan
-  Health: '#f87171', // Red
-  Study: '#fbbf24', // Amber
-  Other: '#94a3b8', // Slate
+  工作: '#a78bfa', // Purple
+  生活: '#67e8f9', // Cyan
+  健康: '#f87171', // Red
+  学习: '#fbbf24', // Amber
+  其他: '#94a3b8', // Slate
 };
 
 export const LEAD_TIME_OPTIONS = [
-  { label: '5 Minutes', value: 5 },
-  { label: '15 Minutes', value: 15 },
-  { label: '30 Minutes', value: 30 },
-  { label: '1 Hour', value: 60 },
-  { label: '1 Day', value: 1440 },
+  { label: '5 分钟前', value: 5 },
+  { label: '15 分钟前', value: 15 },
+  { label: '30 分钟前', value: 30 },
+  { label: '1 小时前', value: 60 },
+  { label: '1 天前', value: 1440 },
 ];

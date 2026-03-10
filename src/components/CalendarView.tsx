@@ -14,6 +14,7 @@ import {
   eachDayOfInterval,
   parseISO
 } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Schedule, CATEGORY_COLORS } from '../types';
 import { cn } from '../lib/utils';
@@ -32,9 +33,9 @@ export default function CalendarView({ schedules, onSelectDate, onDoubleClickDat
     return (
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400/60 mb-1">Monthly Overview</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400/60 mb-1">月度概览</span>
           <h2 className="text-3xl font-display font-bold">
-            {format(currentMonth, 'MMMM')} <span className="text-white/20">{format(currentMonth, 'yyyy')}</span>
+            {format(currentMonth, 'yyyy年 MMMM', { locale: zhCN })}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -48,7 +49,7 @@ export default function CalendarView({ schedules, onSelectDate, onDoubleClickDat
             onClick={() => setCurrentMonth(new Date())}
             className="px-4 py-2 glass-card rounded-xl text-xs font-bold hover:bg-white/10 transition-colors"
           >
-            Today
+            今天
           </button>
           <button
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
@@ -62,7 +63,7 @@ export default function CalendarView({ schedules, onSelectDate, onDoubleClickDat
   };
 
   const renderDays = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = ['日', '一', '二', '三', '四', '五', '六'];
     return (
       <div className="grid grid-cols-7 mb-4">
         {days.map((day) => (
