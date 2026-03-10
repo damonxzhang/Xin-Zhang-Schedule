@@ -43,7 +43,7 @@ export default function WeekCalendarView({ schedules, onToggleComplete, onDelete
   };
 
   return (
-    <div className="glass-card rounded-3xl overflow-hidden flex flex-col h-[700px]">
+    <div className="glass-card rounded-3xl overflow-hidden flex flex-col h-[850px]">
       {/* Header with Days */}
       <div className="flex border-b border-slate-200 bg-slate-50/50">
         <div className="w-16 border-r border-slate-200 flex-shrink-0" />

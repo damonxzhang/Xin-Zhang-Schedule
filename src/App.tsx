@@ -165,7 +165,7 @@ export default function App() {
   }, [schedules, activeTab, searchQuery, selectedCalendarDate]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-8 pb-12 sm:pt-12 sm:pb-20">
+    <div className="max-w-7xl mx-auto px-4 pt-8 pb-12 sm:pt-12 sm:pb-20">
       <ReminderManager schedules={schedules} onReminderSent={handleReminderSent} />
       
       {/* Header */}
